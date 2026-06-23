@@ -73,7 +73,7 @@ class FarmerProfile:
 
 def sample_profile() -> FarmerProfile:
     return FarmerProfile(
-        name="Ramesh Patil", state="Maharashtra", district="Nashik",
+        name="Vishal Patil", state="Maharashtra", district="Nashik",
         village="Yeola", land_hectares=1.2, crop_type="sugarcane",
         caste_category="OBC", gender="male", age=42,
         bank_account=True, aadhaar_linked=True,

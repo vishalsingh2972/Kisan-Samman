@@ -54,7 +54,7 @@ class TestReActAgent:
 class TestFarmerProfile:
     def test_sample_profile_valid(self):
         p = sample_profile()
-        assert p.name == "Ramesh Patil"
+        assert p.name == "Vishal Patil"
         assert p.land_hectares == 1.2
         assert p.caste_category == "OBC"
 
@@ -68,7 +68,7 @@ class TestFarmerProfile:
     def test_summary_string(self):
         p = sample_profile()
         s = p.summary()
-        assert "Ramesh" in s
+        assert "Vishal" in s
         assert "Maharashtra" in s
 
     def test_save_and_load(self, tmp_path):
