@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kisan Seva — AI Farmer Assistant</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --saffron: #e8620a;
+    --saffron-light: #f0872e;
+    --saffron-pale: #fdecd8;
+    --green-india: #138808;
+    --green-mid: #1d6b0f;
+    --green-light: #4caf50;
+    --green-pale: #e8f5e9;
+    --navy: #0d1f3c;
+    --cream: #fdf8f0;
+    --gold: #d4a017;
+    --gold-light: #f0c040;
+    --white: #ffffff;
+    --text-muted: rgba(13,31,60,0.55);
+    --shadow-card: 0 12px 40px rgba(0,0,0,0.08);
+  }
+
+  html, body { height: 100%; font-family: 'Sora', sans-serif; background: var(--cream); scroll-behavior: smooth; }
+
+  /* ─── HERO ─── */
+  .hero { position: relative; min-height: 85vh; overflow: hidden; display: flex; flex-direction: column; background: #0a1f0a; color: white; }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 80% 60% at 80% 30%, rgba(232,98,10,0.18) 0%, transparent 65%),
+                radial-gradient(ellipse 60% 80% at 15% 70%, rgba(19,136,8,0.25) 0%, transparent 60%),
+                radial-gradient(ellipse 100% 100% at 50% 50%, #0d2a0d 0%, #060f06 100%);
+  }
+  .field-texture { position: absolute; inset: 0; z-index: 1; pointer-events: none; background-image: repeating-linear-gradient(0deg, transparent, transparent 38px, rgba(19,136,8,0.06) 38px, rgba(19,136,8,0.06) 40px); }
+  .hero-vignette { position: absolute; inset: 0; z-index: 3; background: radial-gradient(ellipse 85% 85% at 50% 50%, transparent 35%, rgba(0,0,0,0.6) 100%); }
+  .hero-content { position: relative; z-index: 10; flex: 1; display: flex; flex-direction: column; }
+
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.3rem 3rem; backdrop-filter: blur(12px); background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .logo { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; }
+  .logo-icon { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, var(--saffron), var(--gold)); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; box-shadow: 0 4px 15px rgba(232,98,10,0.4); }
+  .logo-text-wrap { display: flex; flex-direction: column; gap: 0; }
+  .logo-hindi { font-family: 'Noto Serif Devanagari', serif; color: var(--gold-light); font-size: 1rem; font-weight: 600; line-height: 1.1; }
+  .logo-eng { color: rgba(255,255,255,0.6); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .nav-links { display: flex; gap: 2.2rem; list-style: none; }
+  .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem; font-weight: 400; transition: color 0.2s; }
+  .nav-links a:hover { color: white; }
+
+  .nav-lang-select {
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.18); border-radius: 50px;
+    padding: 0.4rem 2rem 0.4rem 0.9rem; font-family: 'Sora', sans-serif;
+    font-size: 0.78rem; font-weight: 500; cursor: pointer; outline: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='rgba(255,255,255,0.6)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; transition: all 0.25s;
+  }
+  .nav-lang-select:focus { border-color: var(--saffron); }
+  .nav-lang-select option { background: #0d1f3c; color: white; }
+
+  .online-badge { display: flex; align-items: center; gap: 6px; background: rgba(19,136,8,0.2); border: 1px solid rgba(19,136,8,0.35); color: #4caf50; font-size: 0.72rem; font-weight: 600; padding: 0.4rem 0.9rem; border-radius: 50px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #4caf50; animation: ping 2.5s ease-out infinite; }
+  @keyframes ping { 0%{box-shadow:0 0 0 0 rgba(76,175,80,0.6)} 100%{box-shadow:0 0 0 8px rgba(76,175,80,0)} }
+
+  .nav-cta { display: flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--saffron), var(--saffron-light)); color: white; font-size: 0.85rem; font-weight: 600; padding: 0.55rem 1.3rem; border-radius: 50px; border: none; cursor: pointer; text-decoration: none; transition: all 0.25s; box-shadow: 0 4px 15px rgba(232,98,10,0.35); }
+  .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(232,98,10,0.5); }
+
+  .hero-body { flex: 1; display: flex; align-items: center; padding: 3rem 3rem 2rem; gap: 3rem; }
+  .hero-left { max-width: 560px; flex-shrink: 0; }
+  .lang-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(212,160,23,0.15); border: 1px solid rgba(212,160,23,0.3); color: var(--gold-light); font-size: 0.75rem; letter-spacing: 0.06em; padding: 0.3rem 0.85rem; border-radius: 50px; margin-bottom: 1.5rem; }
+  .hero-title { font-family: 'Sora', sans-serif; font-size: clamp(2.6rem, 5vw, 4.5rem); font-weight: 700; line-height: 1.08; color: white; letter-spacing: -0.025em; margin-bottom: 0.2rem; }
+  .hero-title-devanagari { font-family: 'Noto Serif Devanagari', serif; font-size: clamp(2.8rem, 5.5vw, 4.8rem); font-weight: 700; line-height: 1.1; color: var(--gold-light); display: block; margin-bottom: 1.6rem; }
+  .hero-sub { color: rgba(255,255,255,0.65); font-size: 0.95rem; line-height: 1.7; max-width: 420px; margin-bottom: 2.2rem; }
+  .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary { display: flex; align-items: center; gap: 0.6rem; background: linear-gradient(135deg, var(--saffron), var(--saffron-light)); color: white; font-size: 0.9rem; font-weight: 600; padding: 0.75rem 1.6rem; border-radius: 50px; border: none; cursor: pointer; text-decoration: none; box-shadow: 0 4px 20px rgba(232,98,10,0.4); transition: all 0.25s; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(232,98,10,0.55); }
+
+  /* ─── PROFILE SECTION ─── */
+  #profile-section { background: var(--cream); padding: 6rem 2rem; min-height: 100vh; display: flex; justify-content: center; align-items: center; position: relative; }
+  .section-header { position: absolute; top: 3rem; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; max-width: 800px; padding: 0 1rem; }
+  .section-badge { background: var(--saffron-pale); color: var(--saffron); padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block; margin-bottom: 1rem; }
+  .section-title { color: var(--navy); font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .section-sub { color: var(--text-muted); font-size: 1rem; line-height: 1.6; }
+
+  .profile-container { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; width: 100%; max-width: 1100px; margin-top: 6rem; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(13,31,60,0.06); overflow: hidden; }
+  .profile-form-wrapper { padding: 3rem; border-right: 1px solid rgba(0,0,0,0.06); background: white; }
+  .form-group { margin-bottom: 1.5rem; position: relative; }
+  .form-label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--navy); margin-bottom: 0.5rem; }
+  .form-input, .form-select { width: 100%; padding: 0.85rem 1rem; border: 1px solid rgba(13,31,60,0.15); border-radius: 12px; font-family: 'Sora', sans-serif; font-size: 0.95rem; transition: all 0.2s; background: #fafbfc; }
+  .form-input:focus, .form-select:focus { outline: none; border-color: var(--saffron); background: white; box-shadow: 0 0 0 4px var(--saffron-pale); }
+  .row-group { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .crop-selector { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+  .crop-option { padding: 0.4rem 0.8rem; border: 1px solid rgba(13,31,60,0.15); border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; background: white; color: var(--navy); }
+  .crop-option.selected { background: var(--green-light); color: white; border-color: var(--green-light); }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1rem; background: #fafbfc; border: 1px solid rgba(13,31,60,0.15); border-radius: 12px; margin-bottom: 0.75rem; }
+  .toggle-label { font-size: 0.85rem; font-weight: 500; color: var(--navy); }
+  .toggle-switch { position: relative; width: 40px; height: 22px; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 22px; transition: 0.3s; }
+  .toggle-slider:before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+  input:checked + .toggle-slider { background: var(--green-light); }
+  input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+  .save-profile-btn { width: 100%; margin-top: 0.5rem; background: linear-gradient(135deg, var(--green-india), var(--green-light)); color: white; border: none; border-radius: 12px; padding: 0.9rem; font-family: 'Sora', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 14px rgba(19,136,8,0.25); }
+  .save-profile-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(19,136,8,0.35); }
+  .save-profile-btn.saving { opacity: 0.6; cursor: not-allowed; }
+
+  .save-toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--navy); color: white; padding: 0.7rem 1.4rem; border-radius: 50px; font-size: 0.82rem; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 2000; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; }
+  .save-toast.show { transform: translateX(-50%) translateY(0); }
+
+  .profile-visualizer { background: #f4f7f6; padding: 3rem; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; }
+  .id-card { width: 340px; background: linear-gradient(135deg, #fff, #fdfdfd); border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; position: relative; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.3s ease; }
+  .id-card:hover { transform: translateY(-5px); }
+  .id-header { background: linear-gradient(135deg, var(--navy), #1a3a5c); padding: 1.5rem; color: white; position: relative; overflow: hidden; }
+  .id-header::after { content: ''; position: absolute; top: -50%; right: -20%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255,255,255,0.1), transparent); border-radius: 50%; }
+  .id-logo { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-weight: 700; letter-spacing: 0.05em; font-size: 0.9rem; }
+  .id-photo { width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+  .id-name { font-size: 1.25rem; font-weight: 700; margin-top: 0.8rem; line-height: 1.2; }
+  .id-id-num { font-family: monospace; font-size: 0.8rem; opacity: 0.7; letter-spacing: 1px; margin-top: 0.2rem; }
+  .id-body { padding: 1.5rem; }
+  .id-row { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 0.85rem; border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: 0.4rem; }
+  .id-label { color: var(--text-muted); font-weight: 500; }
+  .id-value { color: var(--navy); font-weight: 600; text-align: right; }
+  .aadhaar-linked { color: var(--green-india); font-weight: 700; }
+  .aadhaar-unlinked { color: #d63031; font-weight: 700; }
+
+  /* ─── ELIGIBILITY ITEMS ─── */
+  .status-section { margin-top: 2rem; width: 100%; }
+  .status-title { font-size: 0.9rem; font-weight: 700; color: var(--navy); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+  /* hint text shown before save */
+  .elig-hint { font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 0.6rem 1rem; background: rgba(13,31,60,0.03); border-radius: 10px; margin-bottom: 0.75rem; border: 1px dashed rgba(13,31,60,0.1); display: none; }
+  .elig-hint.show { display: block; }
+
+  .scheme-check-item {
+    background: white; padding: 0.8rem 1rem; border-radius: 12px; margin-bottom: 0.75rem;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06);
+    transition: all 0.35s ease;
+  }
+  /* Before save: neutral grey, no green/red signal */
+  .scheme-check-item.pending { opacity: 0.5; filter: grayscale(1); }
+  /* After save: not eligible */
+  .scheme-check-item.not-eligible { opacity: 0.45; filter: grayscale(1); }
+  /* After save: eligible */
+  .scheme-check-item.eligible { opacity: 1; filter: grayscale(0); border-color: rgba(19,136,8,0.2); background: #f1f8f1; }
+
+  .scheme-left { display: flex; align-items: center; gap: 0.8rem; }
+  .scheme-icon { font-size: 1.2rem; }
+  .scheme-info h4 { font-size: 0.9rem; color: var(--navy); font-weight: 600; }
+  .scheme-info p { font-size: 0.7rem; color: var(--text-muted); }
+
+  .elig-badge {
+    font-size: 0.62rem; font-weight: 700; padding: 0.25rem 0.65rem;
+    border-radius: 50px; white-space: nowrap; flex-shrink: 0;
+    transition: all 0.35s ease;
+  }
+  /* Pending state (before save) */
+  .elig-badge.state-pending { background: #e4e4e4; color: #999; }
+  /* Not eligible (after save) */
+  .elig-badge.state-no { background: #fde8e8; color: #c0392b; }
+  /* Eligible (after save) */
+  .elig-badge.state-yes { background: var(--green-light); color: white; }
+
+  /* AI Schemes section */
+  .ai-schemes-section { margin-top: 1.5rem; width: 100%; }
+  .ai-schemes-title { font-size: 0.85rem; font-weight: 700; color: var(--navy); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+  .ai-scheme-card { background: white; border-radius: 14px; border: 1px solid rgba(13,31,60,0.08); padding: 1rem; margin-bottom: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.3s; animation: cardSlideIn 0.4s ease backwards; }
+  .ai-scheme-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+  @keyframes cardSlideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .ai-scheme-card:nth-child(2){animation-delay:0.06s} .ai-scheme-card:nth-child(3){animation-delay:0.12s} .ai-scheme-card:nth-child(4){animation-delay:0.18s} .ai-scheme-card:nth-child(5){animation-delay:0.24s}
+  .ai-scheme-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .ai-scheme-name { font-size: 0.88rem; font-weight: 700; color: var(--navy); line-height: 1.3; }
+  .ai-scheme-sponsor { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+  .match-badge { font-size: 0.62rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 50px; background: var(--saffron-pale); color: var(--saffron); white-space: nowrap; flex-shrink: 0; }
+  .ai-scheme-benefit { font-size: 0.78rem; color: var(--green-india); font-weight: 600; padding: 0.5rem 0.75rem; background: var(--green-pale); border-radius: 8px; margin-bottom: 0.5rem; line-height: 1.5; }
+  .ai-scheme-docs { font-size: 0.72rem; color: var(--text-muted); padding: 0.4rem 0.75rem; background: #fafbfc; border-radius: 8px; line-height: 1.5; margin-bottom: 0.5rem; }
+  .ai-scheme-docs span { color: var(--gold); font-weight: 700; }
+  .ai-scheme-csc { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.72rem; padding: 0.5rem 0.75rem; background: #fafbfc; border-radius: 8px; margin-bottom: 0.5rem; }
+  .csc-details { color: var(--text-muted); }
+  .csc-name { font-weight: 700; color: var(--navy); }
+  .csc-phone { color: var(--green-india); font-weight: 600; }
+  .ai-apply-btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; background: linear-gradient(135deg, var(--navy), #1a3a5c); color: white; font-size: 0.74rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; transition: all 0.25s; font-family: 'Sora', sans-serif; }
+  .ai-apply-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(13,31,60,0.3); }
+  .ai-empty-state { text-align: center; padding: 1.5rem; background: #fafbfc; border-radius: 12px; border: 1.5px dashed rgba(13,31,60,0.1); color: var(--text-muted); font-size: 0.82rem; line-height: 1.6; }
+
+  /* ─── MAP SECTION ─── */
+  #map-section { padding: 6rem 2rem; background: var(--white); min-height: 80vh; display: flex; flex-direction: column; align-items: center; }
+  .map-wrapper { width: 100%; max-width: 1200px; height: 500px; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(13,31,60,0.12); border: 1px solid rgba(0,0,0,0.05); position: relative; z-index: 1; }
+  #map { width: 100%; height: 100%; }
+  .map-overlay-info { position: absolute; top: 20px; left: 20px; z-index: 1000; background: rgba(255,255,255,0.95); padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); backdrop-filter: blur(5px); max-width: 300px; }
+  .map-overlay-title { font-size: 0.9rem; font-weight: 700; color: var(--navy); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; }
+  .map-overlay-desc { font-size: 0.8rem; color: var(--text-muted); }
+  .map-overlay-csc { font-size: 0.78rem; color: var(--green-india); font-weight: 600; margin-top: 0.4rem; }
+
+  /* ─── CHAT WINDOW ─── */
+  #chat-toggle { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--saffron), var(--gold)); border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(232,98,10,0.5); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s; color: white; }
+  #chat-toggle:hover { transform: scale(1.08); }
+  #chat-window { position: fixed; bottom: 5.8rem; right: 2rem; z-index: 999; width: 420px; max-height: 640px; background: rgba(6,16,6,0.95); backdrop-filter: blur(24px); border: 1px solid rgba(232,98,10,0.25); border-radius: 22px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.55); transform: scale(0.95) translateY(12px); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  #chat-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+  .chat-header { padding: 1rem 1.2rem; background: rgba(232,98,10,0.1); border-bottom: 1px solid rgba(232,98,10,0.18); display: flex; align-items: center; gap: 0.75rem; }
+  .chat-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--saffron), var(--gold)); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+  .chat-header-info { flex: 1; }
+  .chat-header-name { color: white; font-weight: 600; font-size: 0.9rem; }
+  .chat-header-status { color: #4caf50; font-size: 0.72rem; display: flex; align-items: center; gap: 0.35rem; margin-top: 0.1rem; }
+  .chat-close { color: rgba(255,255,255,0.4); background: none; border: none; cursor: pointer; font-size: 1.1rem; }
+  .speaking-badge { background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.3); color: #4caf50; font-size: 0.68rem; font-weight: 600; padding: 0.2rem 0.7rem; border-radius: 50px; animation: speakPulse 1.5s ease-in-out infinite; display: none; }
+  @keyframes speakPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .chat-lang-select { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 0.3rem 0.6rem; font-family: 'Sora', sans-serif; font-size: 0.72rem; cursor: pointer; outline: none; transition: all 0.2s; }
+  .chat-lang-select option { background: #0d1f3c; }
+  .quick-chips-area { padding: 0.7rem 0.9rem 0; display: flex; gap: 0.5rem; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+  .quick-chips-area::-webkit-scrollbar { display: none; }
+  .quick-chip { padding: 0.35rem 0.85rem; border-radius: 50px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.75); font-size: 0.72rem; font-weight: 500; font-family: 'Sora', sans-serif; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+  .quick-chip:hover { background: rgba(232,98,10,0.2); border-color: rgba(232,98,10,0.4); color: white; }
+  #chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  #chat-messages::-webkit-scrollbar { width: 4px; }
+  #chat-messages::-webkit-scrollbar-track { background: transparent; }
+  #chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+  .msg { max-width: 88%; padding: 0.7rem 1rem; border-radius: 14px; font-size: 0.85rem; line-height: 1.6; animation: msgIn 0.25s ease; }
+  .msg.bot { background: rgba(232,98,10,0.1); border: 1px solid rgba(232,98,10,0.2); color: rgba(255,255,255,0.9); align-self: flex-start; }
+  .msg.user { background: linear-gradient(135deg, var(--saffron), var(--saffron-light)); color: white; align-self: flex-end; }
+  .msg.error { background: rgba(214,48,49,0.15); border: 1px solid rgba(214,48,49,0.3); color: #ff7675; align-self: flex-start; }
+  @keyframes msgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  .loading-dots { display: inline-flex; gap: 4px; vertical-align: middle; }
+  .loading-dots span { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.7); animation: dotPop 1.4s ease-in-out infinite; }
+  .loading-dots span:nth-child(2){animation-delay:0.15s} .loading-dots span:nth-child(3){animation-delay:0.3s}
+  @keyframes dotPop { 0%,60%,100%{transform:scale(0.4);opacity:0.2} 30%{transform:scale(1);opacity:1} }
+  .chat-scheme-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0.8rem; margin-top: 0.5rem; animation: msgIn 0.3s ease backwards; }
+  .chat-scheme-name { font-size: 0.83rem; font-weight: 700; color: white; margin-bottom: 0.3rem; }
+  .chat-scheme-benefit { font-size: 0.76rem; color: #a5d6a7; margin-bottom: 0.4rem; line-height: 1.5; }
+  .chat-scheme-match { font-size: 0.65rem; color: var(--gold-light); font-weight: 600; }
+  .chat-apply-btn { display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.5rem; padding: 0.35rem 0.8rem; background: linear-gradient(135deg, var(--saffron), var(--gold)); color: white; font-size: 0.72rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; font-family: 'Sora', sans-serif; transition: all 0.2s; }
+  .chat-apply-btn:hover { transform: translateY(-1px); }
+  .play-audio-btn { margin-top: 0.5rem; padding: 0.4rem 0.9rem; background: rgba(76,175,80,0.2); border: 1px solid rgba(76,175,80,0.3); color: #a5d6a7; font-size: 0.75rem; font-weight: 600; border-radius: 8px; cursor: pointer; font-family: 'Sora', sans-serif; transition: all 0.2s; }
+  .play-audio-btn:hover { background: rgba(76,175,80,0.3); }
+  .chat-input-area { padding: 0.75rem 0.9rem; border-top: 1px solid rgba(232,98,10,0.12); display: flex; gap: 0.6rem; align-items: flex-end; }
+  #chat-input { flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(232,98,10,0.2); border-radius: 12px; padding: 0.65rem 0.9rem; color: white; font-family: 'Sora', sans-serif; font-size: 0.85rem; resize: none; outline: none; max-height: 100px; }
+  #chat-input::placeholder { color: rgba(255,255,255,0.3); }
+  #chat-input:focus { border-color: rgba(232,98,10,0.5); }
+  #mic-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: rgba(255,255,255,0.7); transition: all 0.2s; }
+  #mic-btn:hover { background: rgba(255,255,255,0.2); color: white; }
+  #mic-btn.recording { background: var(--saffron); color: white; border-color: var(--saffron); animation: pulse-rec 1.5s infinite; }
+  #mic-btn.processing { background: rgba(212,160,23,0.3); border-color: var(--gold); color: var(--gold-light); animation: none; }
+  @keyframes pulse-rec { 0% { box-shadow: 0 0 0 0 rgba(232,98,10,0.7); } 70% { box-shadow: 0 0 0 10px rgba(232,98,10,0); } 100% { box-shadow: 0 0 0 0 rgba(232,98,10,0); } }
+  #send-btn { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--saffron), var(--gold)); border: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.2s; }
+  #send-btn:hover { transform: scale(1.08); }
+  #send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .mic-status-bar { padding: 0.3rem 0.9rem 0.5rem; font-size: 0.7rem; color: rgba(255,255,255,0.35); text-align: center; min-height: 22px; }
+  .mic-status-bar.ok { color: #a5d6a7; }
+  .mic-status-bar.error { color: #ff7675; }
+
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .profile-container { grid-template-columns: 1fr; margin-top: 4rem; }
+    .profile-form-wrapper { border-right: none; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    #chat-window { width: calc(100vw - 2rem); right: 1rem; bottom: 5rem; }
+    .map-wrapper { height: 350px; }
+    nav { padding: 1rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="field-texture"></div>
+  <div class="hero-vignette"></div>
+  <div class="hero-content">
+    <nav>
+      <a class="logo" href="#">
+        <div class="logo-icon">🌾</div>
+        <div class="logo-text-wrap">
+          <span class="logo-hindi">किसान सेवा</span>
+          <span class="logo-eng">Kisan Seva</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#profile-section">My Profile</a></li>
+        <li><a href="#map-section">Locate CSC</a></li>
+      </ul>
+      <div style="display:flex;align-items:center;gap:0.9rem;">
+        <div class="online-badge"><div class="status-dot"></div>AI Online</div>
+        <select class="nav-lang-select" id="globalLangSelect" onchange="setLanguage(this.value)">
+          <option value="mr-IN">मराठी</option>
+          <option value="hi-IN">हिंदी</option>
+          <option value="ta-IN">தமிழ்</option>
+          <option value="te-IN">తెలుగు</option>
+          <option value="kn-IN">ಕನ್ನಡ</option>
+          <option value="bn-IN">বাংলা</option>
+          <option value="gu-IN">ગુજરાતી</option>
+          <option value="pa-IN">ਪੰਜਾਬੀ</option>
+          <option value="en-IN">English</option>
+        </select>
+        <a class="nav-cta" href="#profile-section">Check Eligibility</a>
+      </div>
+    </nav>
+    <div class="hero-body">
+      <div class="hero-left">
+        <div class="lang-badge">🎙️ Voice-First AI · Multi-Language</div>
+        <h1 class="hero-title">Kisaan Schemes</h1>
+        <!-- <span class="hero-title-devanagari">और नक्शा।</span> -->
+        <p class="hero-sub">Create your profile, let our AI find your eligible government schemes, and locate the nearest Common Service Centre — all in your language.</p>
+        <div class="hero-btns">
+          <a class="btn-primary" href="#profile-section">📝 Create Profile</a>
+          <a class="btn-primary" href="#map-section" style="background: linear-gradient(135deg, var(--navy), #2a4a6c);">📍 Find CSC</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PROFILE SECTION ═══ -->
+<section id="profile-section">
+  <div class="section-header">
+    <div class="section-badge">AI-Powered Eligibility Check</div>
+    <h2 class="section-title">Farmer Profile</h2>
+    <p class="section-sub">Fill in your details. The AI will find all eligible schemes for you automatically.</p>
+  </div>
+
+  <div class="profile-container">
+    <div class="profile-form-wrapper">
+      <div class="form-group">
+        <label class="form-label">Full Name (पूरा नाम)</label>
+        <input type="text" id="input-name" class="form-input" placeholder="e.g. Ramesh Patil" value="Ramesh Patil">
+      </div>
+      <div class="row-group">
+        <div class="form-group">
+          <label class="form-label">Village (गांव)</label>
+          <input type="text" id="input-village" class="form-input" placeholder="e.g. Yeola" value="Yeola">
+        </div>
+        <div class="form-group">
+          <label class="form-label">District (जिला)</label>
+          <input type="text" id="input-district" class="form-input" placeholder="e.g. Nashik" value="Nashik">
+        </div>
+      </div>
+      <div class="row-group">
+        <div class="form-group">
+          <label class="form-label">State (राज्य)</label>
+          <select id="input-state" class="form-select" onchange="updateMapFromForm()">
+            <option value="Maharashtra">Maharashtra</option>
+            <option value="Punjab">Punjab</option>
+            <option value="Uttar Pradesh">Uttar Pradesh</option>
+            <option value="Madhya Pradesh">Madhya Pradesh</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Rajasthan">Rajasthan</option>
+            <option value="Gujarat">Gujarat</option>
+            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="Telangana">Telangana</option>
+            <option value="West Bengal">West Bengal</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category (वर्ग)</label>
+          <select id="input-category" class="form-select">
+            <option value="GEN">General</option>
+            <option value="OBC" selected>OBC</option>
+            <option value="SC">SC</option>
+            <option value="ST">ST</option>
+          </select>
+        </div>
+      </div>
+      <div class="row-group">
+        <div class="form-group">
+          <label class="form-label">Land Size (hectares)</label>
+          <input type="number" id="input-land" class="form-input" placeholder="0.0" step="0.1" value="1.2">
+          <small style="color:var(--text-muted); font-size:0.7rem; margin-top:4px; display:block;">PM-KISAN: &lt; 2 ha · KUSUM: ≥ 0.5 ha</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Annual Income (₹)</label>
+          <input type="number" id="input-income" class="form-input" placeholder="e.g. 85000" value="85000">
+          <small style="color:var(--text-muted); font-size:0.7rem; margin-top:4px; display:block;">Must be below ₹2,00,000 for most schemes</small>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Primary Crop (मुख्य फसल)</label>
+        <input type="text" id="input-crop" class="form-input" placeholder="e.g. sugarcane, wheat, rice" value="sugarcane">
+        <div class="crop-selector" id="crop-container" style="margin-top:0.5rem;">
+          <span class="crop-option" onclick="selectCrop(this,'wheat')">Wheat</span>
+          <span class="crop-option" onclick="selectCrop(this,'rice')">Rice</span>
+          <span class="crop-option" onclick="selectCrop(this,'cotton')">Cotton</span>
+          <span class="crop-option selected" onclick="selectCrop(this,'sugarcane')">Sugarcane</span>
+          <span class="crop-option" onclick="selectCrop(this,'soybean')">Soybean</span>
+          <span class="crop-option" onclick="selectCrop(this,'maize')">Maize</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Account & Documents</label>
+        <div class="toggle-row">
+          <span class="toggle-label">Bank Account</span>
+          <label class="toggle-switch"><input type="checkbox" id="input-bank" checked onchange="updateProfile()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Aadhaar Linked to Bank</span>
+          <label class="toggle-switch"><input type="checkbox" id="input-aadhaar" checked onchange="updateProfile()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Kisan Credit Card (KCC)</span>
+          <label class="toggle-switch"><input type="checkbox" id="input-kcc" onchange="updateProfile()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">PM-Kisan Already Registered</span>
+          <label class="toggle-switch"><input type="checkbox" id="input-pmkisan" onchange="updateProfile()"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+      <button class="save-profile-btn" id="saveBtn" onclick="saveProfile()">💾 Save Profile & Check Eligibility</button>
+    </div>
+
+    <!-- Right: ID Card + Eligibility -->
+    <div class="profile-visualizer">
+      <div class="id-card">
+        <div class="id-header">
+          <div class="id-logo">🇮🇳 GOVERNMENT OF INDIA</div>
+          <div style="display:flex; gap:1rem; align-items:center;">
+            <div class="id-photo">👨‍🌾</div>
+            <div>
+              <div class="id-name" id="card-name">Ramesh Patil</div>
+              <div class="id-id-num">ID: KIS-2023-8842</div>
+            </div>
+          </div>
+        </div>
+        <div class="id-body">
+          <div class="id-row"><span class="id-label">Location</span><span class="id-value" id="card-location">Yeola, Nashik, MH</span></div>
+          <div class="id-row"><span class="id-label">Land Holding</span><span class="id-value"><span id="card-land">1.2</span> Ha</span></div>
+          <div class="id-row"><span class="id-label">Crop</span><span class="id-value" id="card-crop">Sugarcane</span></div>
+          <div class="id-row"><span class="id-label">Category</span><span class="id-value" id="card-category">OBC</span></div>
+          <div class="id-row"><span class="id-label">Aadhaar</span><span class="id-value aadhaar-linked" id="card-aadhaar">✓ Linked</span></div>
+        </div>
+      </div>
+
+      <!-- Dynamic eligibility checks -->
+      <div class="status-section">
+        <div class="status-title">🛡️ Quick Eligibility Check</div>
+
+        <!-- Hint shown before first save -->
+        <div class="elig-hint show" id="eligHint">
+          Fill in your details and click <strong>Save Profile</strong> to see your eligibility.
+        </div>
+
+        <div class="scheme-check-item pending" id="check-pmkisan">
+          <div class="scheme-left"><div class="scheme-icon">💰</div><div class="scheme-info"><h4>PM-KISAN Samman Nidhi</h4><p>₹6,000 / year · land ≤ 2 ha · income &lt; ₹2L</p></div></div>
+          <span class="elig-badge state-pending" id="badge-pmkisan">—</span>
+        </div>
+        <div class="scheme-check-item pending" id="check-kcc">
+          <div class="scheme-left"><div class="scheme-icon">💳</div><div class="scheme-info"><h4>Kisan Credit Card (KCC)</h4><p>Credit up to ₹3 Lakh @ 4% · no existing KCC</p></div></div>
+          <span class="elig-badge state-pending" id="badge-kcc">—</span>
+        </div>
+        <div class="scheme-check-item pending" id="check-kusum">
+          <div class="scheme-left"><div class="scheme-icon">☀️</div><div class="scheme-info"><h4>PM KUSUM Yojana</h4><p>Solar Pump subsidy · land ≥ 0.5 ha</p></div></div>
+          <span class="elig-badge state-pending" id="badge-kusum">—</span>
+        </div>
+        <div class="scheme-check-item pending" id="check-bima">
+          <div class="scheme-left"><div class="scheme-icon">🛡️</div><div class="scheme-info"><h4>PM Fasal Bima Yojana</h4><p>Crop Insurance · notified crops only</p></div></div>
+          <span class="elig-badge state-pending" id="badge-bima">—</span>
+        </div>
+      </div>
+
+      <!-- AI Scheme Results -->
+      <div class="ai-schemes-section" id="aiSchemesSection">
+        <div class="ai-schemes-title">🤖 AI-Found Schemes</div>
+        <div id="aiSchemesList">
+          <div class="ai-empty-state">Ask the AI assistant about schemes — results appear here</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ MAP SECTION ═══ -->
+<section id="map-section">
+  <div class="section-header" style="position:relative;transform:none;left:auto;margin-bottom:2rem;text-align:center;">
+    <div class="section-badge">Locator Tool</div>
+    <h2 class="section-title">Find Nearest CSC</h2>
+  </div>
+  <div class="map-wrapper" style="position:relative;">
+    <div class="map-overlay-info">
+      <div class="map-overlay-title">🗺️ Service Centers</div>
+      <div class="map-overlay-desc" id="mapDesc">Map shows your profile location.</div>
+      <div class="map-overlay-csc" id="mapCscInfo"></div>
+    </div>
+    <div id="map"></div>
+  </div>
+</section>
+
+<!-- ═══ CHAT ═══ -->
+<button id="chat-toggle" onclick="toggleChat()">🌾</button>
+
+<div id="chat-window">
+  <div class="chat-header">
+    <div class="chat-avatar">🌾</div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">Kisan Seva AI</div>
+      <div class="chat-header-status" id="chatStatus"><span style="width:6px;height:6px;background:#4caf50;border-radius:50%;display:inline-block;"></span> Online · Ask in your language</div>
+    </div>
+    <span class="speaking-badge" id="speakingBadge">🔊 Speaking…</span>
+    <select class="chat-lang-select" id="chatLangSelect" onchange="setLanguage(this.value)" style="margin-left:4px;">
+      <option value="mr-IN">मराठी</option>
+      <option value="hi-IN">हिंदी</option>
+      <option value="ta-IN">Tamil</option>
+      <option value="te-IN">Telugu</option>
+      <option value="kn-IN">ಕನ್ನಡ</option>
+      <option value="bn-IN">বাংলা</option>
+      <option value="gu-IN">ગુજ</option>
+      <option value="pa-IN">ਪੰਜਾਬੀ</option>
+      <option value="en-IN">EN</option>
+    </select>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="quick-chips-area">
+    <button class="quick-chip" onclick="quickQuery('What schemes am I eligible for?')">📋 My Schemes</button>
+    <button class="quick-chip" onclick="quickQuery('PM Kisan Samman Nidhi details')">🌾 PM Kisan</button>
+    <button class="quick-chip" onclick="quickQuery('Crop insurance schemes for my crop')">🛡️ Insurance</button>
+    <button class="quick-chip" onclick="quickQuery('Irrigation subsidy for farmers')">💧 Irrigation</button>
+    <button class="quick-chip" onclick="quickQuery('Kisan credit card benefits')">💳 KCC</button>
+    <button class="quick-chip" onclick="quickQuery('Soil health card scheme')">🌱 Soil Card</button>
+  </div>
+  <div id="chat-messages">
+    <div class="msg bot">Namaste! 🙏 I'm your AI welfare assistant. Ask me about government schemes, subsidies, or benefits — in any language you prefer.</div>
+  </div>
+  <div class="chat-input-area">
+    <button id="mic-btn" onclick="toggleRecording()" title="Voice Input">🎤</button>
+    <textarea id="chat-input" placeholder="Ask about schemes, subsidies…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+    <button id="send-btn" onclick="sendMessage()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </button>
+  </div>
+  <div class="mic-status-bar" id="micStatusBar">Tap mic to speak in your language</div>
+</div>
+
+<div class="save-toast" id="saveToast">✅ Profile saved successfully!</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+
+/* ─────────────────────────────────────────────
+   STATE
+───────────────────────────────────────────── */
+let profile = {
+  name:"Ramesh Patil", state:"Maharashtra", district:"Nashik", village:"Yeola",
+  land_hectares:1.2, crop_type:"sugarcane", caste_category:"OBC", gender:"male", age:42,
+  bank_account:true, aadhaar_linked:true, kisan_credit_card:false, pm_kisan_registered:false,
+  annual_income:85000, language_code:"mr-IN", latitude:null, longitude:null
+};
+
+// KEY FIX: badges stay neutral until user explicitly saves the profile
+let profileSaved = false;
+
+let currentLanguage = "mr-IN";
+let chatOpen = false;
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+let currentAudioB64 = null;
+let map = null;
+let mapMarkers = [];
+
+/* ─────────────────────────────────────────────
+   LANGUAGE
+───────────────────────────────────────────── */
+function setLanguage(lang) {
+  currentLanguage = lang;
+  profile.language_code = lang;
+  document.getElementById('globalLangSelect').value = lang;
+  document.getElementById('chatLangSelect').value = lang;
+}
+
+/* ─────────────────────────────────────────────
+   FORM ↔ PROFILE SYNC
+───────────────────────────────────────────── */
+function getProfileFromForm() {
+  return {
+    ...profile,
+    name:              document.getElementById('input-name').value.trim()    || profile.name,
+    village:           document.getElementById('input-village').value.trim() || profile.village,
+    district:          document.getElementById('input-district').value.trim()|| profile.district,
+    state:             document.getElementById('input-state').value,
+    land_hectares:     parseFloat(document.getElementById('input-land').value)   || 0,
+    crop_type:         document.getElementById('input-crop').value.trim()    || profile.crop_type,
+    caste_category:    document.getElementById('input-category').value,
+    annual_income:     parseInt(document.getElementById('input-income').value)   || 0,
+    bank_account:      document.getElementById('input-bank').checked,
+    aadhaar_linked:    document.getElementById('input-aadhaar').checked,
+    kisan_credit_card: document.getElementById('input-kcc').checked,
+    pm_kisan_registered: document.getElementById('input-pmkisan').checked,
+    language_code:     currentLanguage
+  };
+}
+
+function populateFormFromProfile(p) {
+  document.getElementById('input-name').value     = p.name     || '';
+  document.getElementById('input-village').value  = p.village  || '';
+  document.getElementById('input-district').value = p.district || '';
+  document.getElementById('input-state').value    = p.state    || 'Maharashtra';
+  document.getElementById('input-land').value     = p.land_hectares || '';
+  document.getElementById('input-crop').value     = p.crop_type     || '';
+  document.getElementById('input-category').value = p.caste_category|| 'GEN';
+  document.getElementById('input-income').value   = p.annual_income || '';
+  document.getElementById('input-bank').checked         = !!p.bank_account;
+  document.getElementById('input-aadhaar').checked      = !!p.aadhaar_linked;
+  document.getElementById('input-kcc').checked          = !!p.kisan_credit_card;
+  document.getElementById('input-pmkisan').checked      = !!p.pm_kisan_registered;
+  if (p.language_code) setLanguage(p.language_code);
+  document.querySelectorAll('.crop-option').forEach(el => {
+    el.classList.toggle('selected', el.textContent.toLowerCase() === (p.crop_type || '').toLowerCase());
+  });
+}
+
+/* updateProfile is called on every form change — only updates card, NOT eligibility */
+function updateProfile() {
+  profile = getProfileFromForm();
+  updateIDCard();
+  // Eligibility is only computed/shown after explicit Save
+  if (profileSaved) runLocalEligibility();
+}
+
+/* ─────────────────────────────────────────────
+   ID CARD
+───────────────────────────────────────────── */
+function updateIDCard() {
+  document.getElementById('card-name').textContent     = profile.name;
+  document.getElementById('card-location').textContent = `${profile.village}, ${profile.district}, ${profile.state.slice(0,2).toUpperCase()}`;
+  document.getElementById('card-land').textContent     = profile.land_hectares;
+  document.getElementById('card-crop').textContent     = profile.crop_type
+    ? profile.crop_type.charAt(0).toUpperCase() + profile.crop_type.slice(1)
+    : '—';
+  document.getElementById('card-category').textContent = profile.caste_category;
+  const aaEl = document.getElementById('card-aadhaar');
+  aaEl.textContent  = profile.aadhaar_linked ? '✓ Linked' : '✗ Not Linked';
+  aaEl.className    = profile.aadhaar_linked ? 'aadhaar-linked' : 'aadhaar-unlinked';
+}
+
+/* ─────────────────────────────────────────────
+   ELIGIBILITY — CORRECTED LOGIC
+   Only called after profileSaved = true
+───────────────────────────────────────────── */
+
+// Notified crops eligible for PM Fasal Bima Yojana
+const NOTIFIED_CROPS = new Set([
+  'wheat', 'rice', 'paddy', 'sugarcane', 'cotton', 'soybean',
+  'maize', 'groundnut', 'jowar', 'bajra', 'ragi', 'mustard',
+  'sunflower', 'moong', 'urad', 'arhar', 'lentil', 'gram',
+  'chickpea', 'tur', 'barley', 'oilseed'
+]);
+
+function runLocalEligibility() {
+  const p = profile;
+
+  // Hide the "save first" hint
+  document.getElementById('eligHint').classList.remove('show');
+
+  const cropLower = (p.crop_type || '').toLowerCase().trim();
+  const cropOk    = NOTIFIED_CROPS.has(cropLower);
+  const income    = p.annual_income || 0;
+  const land      = p.land_hectares || 0;
+
+  /*
+    PM-KISAN Samman Nidhi
+    ✅ Land must be > 0 and ≤ 2 ha (small/marginal farmer)
+    ✅ Must have bank account
+    ✅ Aadhaar must be linked
+    ✅ Must NOT already be PM-Kisan registered
+    ✅ Annual income must be < ₹2,00,000
+  */
+  setEligibility('pmkisan',
+    land > 0 &&
+    land <= 2 &&
+    p.bank_account &&
+    p.aadhaar_linked &&
+    !p.pm_kisan_registered &&
+    income < 200000
+  );
+
+  /*
+    Kisan Credit Card (KCC)
+    ✅ Must NOT already hold a KCC
+    ✅ Land must be ≥ 0.1 ha (minimum viable agricultural holding)
+    ✅ Must have bank account
+  */
+  setEligibility('kcc',
+    !p.kisan_credit_card &&
+    land >= 0.1 &&
+    p.bank_account
+  );
+
+  /*
+    PM KUSUM Yojana (Solar Pump)
+    ✅ Land must be ≥ 0.5 ha (minimum for practical solar pump use)
+    ✅ Must have bank account
+    ✅ Aadhaar must be linked
+    ✅ Annual income must be < ₹2,00,000
+  */
+  setEligibility('kusum',
+    land >= 0.5 &&
+    p.bank_account &&
+    p.aadhaar_linked &&
+    income < 200000
+  );
+
+  /*
+    PM Fasal Bima Yojana (Crop Insurance)
+    ✅ Crop must be a notified crop under the scheme
+    ✅ Must have bank account (premium deduction)
+    ✅ Aadhaar must be linked
+  */
+  setEligibility('bima',
+    cropOk &&
+    p.bank_account &&
+    p.aadhaar_linked
+  );
+}
+
+/**
+ * Apply the correct CSS classes and badge text for a scheme row.
+ * @param {string} key  — e.g. 'pmkisan', 'kcc', 'kusum', 'bima'
+ * @param {boolean} eligible
+ */
+function setEligibility(key, eligible) {
+  const item  = document.getElementById(`check-${key}`);
+  const badge = document.getElementById(`badge-${key}`);
+  if (!item || !badge) return;
+
+  // Remove all state classes, then apply the right one
+  item.classList.remove('pending', 'eligible', 'not-eligible');
+  badge.classList.remove('state-pending', 'state-yes', 'state-no');
+
+  if (eligible) {
+    item.classList.add('eligible');
+    badge.classList.add('state-yes');
+    badge.textContent = 'ELIGIBLE';
+  } else {
+    item.classList.add('not-eligible');
+    badge.classList.add('state-no');
+    badge.textContent = 'NOT ELIGIBLE';
+  }
+}
+
+/* ─────────────────────────────────────────────
+   CROP SELECTOR
+───────────────────────────────────────────── */
+function selectCrop(el, cropName) {
+  document.querySelectorAll('.crop-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('input-crop').value = cropName;
+  updateProfile();
+}
+
+/* ─────────────────────────────────────────────
+   PROFILE LOAD / SAVE
+───────────────────────────────────────────── */
+async function loadProfile() {
+  try {
+    const resp = await fetch('/api/profile');
+    if (resp.ok) {
+      const saved = await resp.json();
+      profile = { ...profile, ...saved };
+      populateFormFromProfile(profile);
+      updateIDCard();
+      // If the server returned a saved profile, treat it as already-saved
+      profileSaved = true;
+      runLocalEligibility();
+    } else {
+      // No server profile — just sync the ID card with defaults
+      updateIDCard();
+    }
+  } catch (e) {
+    // Server not available — sync card, leave badges neutral
+    updateIDCard();
+  }
+}
+
+async function saveProfile() {
+  profile = getProfileFromForm();
+
+  // Mark as saved so runLocalEligibility() shows real results
+  profileSaved = true;
+
+  updateIDCard();
+  runLocalEligibility();
+
+  const btn = document.getElementById('saveBtn');
+  btn.classList.add('saving');
+  btn.textContent = '⏳ Saving…';
+
+  try {
+    await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profile)
+    });
+  } catch (e) { /* offline — eligibility still computed locally */ }
+
+  // Try geocoding for the map
+  try {
+    const gResp = await fetch('/api/geocode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `${profile.village}, ${profile.district}, ${profile.state}` })
+    });
+    if (gResp.ok) {
+      const loc = await gResp.json();
+      if (loc.latitude && loc.longitude) {
+        profile.latitude  = loc.latitude;
+        profile.longitude = loc.longitude;
+        updateMap(loc.latitude, loc.longitude);
+      }
+    }
+  } catch (e) {
+    updateMapFromForm();
+  }
+
+  btn.classList.remove('saving');
+  btn.textContent = '💾 Save Profile & Check Eligibility';
+  showToast('✅ Profile saved! Eligibility updated.');
+
+  // Auto-query AI for scheme suggestions
+  quickQuery('What government schemes am I eligible for?');
+}
+
+/* ─────────────────────────────────────────────
+   TOAST
+───────────────────────────────────────────── */
+function showToast(msg) {
+  const t = document.getElementById('saveToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+/* ─────────────────────────────────────────────
+   MAP
+───────────────────────────────────────────── */
+const STATE_COORDS = {
+  'Maharashtra':   [19.7515, 75.7139],
+  'Punjab':        [31.1471, 75.3412],
+  'Uttar Pradesh': [26.8467, 80.9462],
+  'Madhya Pradesh':[22.9734, 78.6569],
+  'Karnataka':     [15.3173, 75.7139],
+  'Rajasthan':     [27.0238, 74.2179],
+  'Gujarat':       [22.2587, 71.1924],
+  'Tamil Nadu':    [11.1271, 78.6569],
+  'Telangana':     [18.1124, 79.0193],
+  'West Bengal':   [22.9868, 87.8550]
+};
+
+function initMap(lat, lng) {
+  if (map) { map.remove(); map = null; }
+  const center = (lat && lng) ? [lat, lng] : (STATE_COORDS[profile.state] || [20.5937, 78.9629]);
+  const zoom   = (lat && lng) ? 12 : 7;
+  map = L.map('map', { zoomControl: true }).setView(center, zoom);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OSM © CARTO', maxZoom: 19
+  }).addTo(map);
+  mapMarkers.forEach(m => map.removeLayer(m));
+  mapMarkers = [];
+  if (lat && lng) {
+    const fi = L.divIcon({ html:'👨‍🌾', className:'', iconSize:[32,32], iconAnchor:[16,16] });
+    mapMarkers.push(
+      L.marker([lat, lng], { icon: fi })
+        .addTo(map)
+        .bindPopup(`<b>${profile.name}</b><br>${profile.village}, ${profile.district}`)
+    );
+    addCSCMarkers([lat, lng]);
+  } else {
+    addCSCMarkers(center);
+  }
+  setTimeout(() => map && map.invalidateSize(), 200);
+}
+
+function addCSCMarkers(center) {
+  const ci = L.divIcon({ html:'🏢', className:'', iconSize:[28,28], iconAnchor:[14,14] });
+  for (let i = 0; i < 5; i++) {
+    const lat  = center[0] + (Math.random() - 0.5) * 0.6;
+    const lng  = center[1] + (Math.random() - 0.5) * 0.6;
+    const dist = (Math.random() * 8 + 0.5).toFixed(1);
+    mapMarkers.push(
+      L.marker([lat, lng], { icon: ci })
+        .addTo(map)
+        .bindPopup(`<div style="font-family:sans-serif;font-size:13px;"><b>CSC Centre #${100 + i}</b><br>📍 ${dist} km from you<br><span style="color:green">● Open</span></div>`)
+    );
+  }
+}
+
+function updateMap(lat, lng) {
+  if (!map) { initMap(lat, lng); return; }
+  map.flyTo([lat, lng], 12, { animate: true, duration: 1.5 });
+  setTimeout(() => {
+    mapMarkers.forEach(m => map.removeLayer(m));
+    mapMarkers = [];
+    const fi = L.divIcon({ html:'👨‍🌾', className:'', iconSize:[32,32], iconAnchor:[16,16] });
+    mapMarkers.push(
+      L.marker([lat, lng], { icon: fi })
+        .addTo(map)
+        .bindPopup(`<b>${profile.name}</b><br>${profile.village}, ${profile.district}`)
+    );
+    addCSCMarkers([lat, lng]);
+  }, 1600);
+  document.getElementById('mapDesc').textContent = `Showing: ${profile.village}, ${profile.district}`;
+}
+
+function updateMapFromForm() {
+  const coords = STATE_COORDS[document.getElementById('input-state').value];
+  if (coords && map) {
+    map.flyTo(coords, 7, { animate: true, duration: 1.5 });
+    setTimeout(() => {
+      mapMarkers.forEach(m => map.removeLayer(m));
+      mapMarkers = [];
+      addCSCMarkers(coords);
+    }, 1600);
+  }
+  updateProfile();
+}
+
+/* ─────────────────────────────────────────────
+   AI SCHEME PANELS
+───────────────────────────────────────────── */
+function renderAISchemesPanel(schemes, appLinks) {
+  const container = document.getElementById('aiSchemesList');
+  if (!schemes || !schemes.length) {
+    container.innerHTML = '<div class="ai-empty-state">No specific schemes found for this query.</div>';
+    return;
+  }
+  container.innerHTML = schemes.map(s => {
+    const link      = (appLinks || {})[s.id] || {};
+    const portalUrl = link.portal_url || s.portal_url || '';
+    const docs      = link.documents_required || s.documents_required || [];
+    const cscAddr   = link.csc_address   || '';
+    const cscPhone  = link.csc_phone     || '';
+    const cscDist   = link.csc_distance_km ? `${link.csc_distance_km} km away` : '';
+    const docsHtml  = docs.length
+      ? `<div class="ai-scheme-docs"><span>📄 Docs:</span> ${docs.join(', ')}</div>` : '';
+    const cscHtml   = cscAddr
+      ? `<div class="ai-scheme-csc"><span>🏢</span><div class="csc-details"><span class="csc-name">${cscAddr}</span>${cscDist ? ` — ${cscDist}` : ''}${cscPhone ? `<br><span class="csc-phone">📞 ${cscPhone}</span>` : ''}</div></div>` : '';
+    const applyBtn  = portalUrl
+      ? `<a class="ai-apply-btn" href="${portalUrl}" target="_blank">🌐 Apply Online ↗</a>`
+      : `<button class="ai-apply-btn" onclick="fetchSchemeLink('${s.id}',this)">📋 Get Apply Link</button>`;
+    return `<div class="ai-scheme-card">
+      <div class="ai-scheme-top">
+        <div>
+          <div class="ai-scheme-name">${s.full_name || s.name || s.id}</div>
+          <div class="ai-scheme-sponsor">🏛 ${s.sponsor || 'Government of India'}</div>
+        </div>
+        <span class="match-badge">${Math.round((s.confidence || 0.85) * 100)}% match</span>
+      </div>
+      <div class="ai-scheme-benefit">✅ ${s.benefit || ''}</div>
+      ${docsHtml}${cscHtml}${applyBtn}
+    </div>`;
+  }).join('');
+}
+
+function renderChatSchemeCards(schemes, appLinks) {
+  if (!schemes || !schemes.length) return '';
+  return schemes.slice(0, 4).map((s, i) => {
+    const link      = (appLinks || {})[s.id] || {};
+    const portalUrl = link.portal_url || s.portal_url || '';
+    const applyBtn  = portalUrl
+      ? `<a class="chat-apply-btn" href="${portalUrl}" target="_blank">🌐 Apply ↗</a>`
+      : `<button class="chat-apply-btn" onclick="fetchSchemeLink('${s.id}',this)">📋 Apply Link</button>`;
+    return `<div class="chat-scheme-card" style="animation-delay:${i * 0.08}s">
+      <div class="chat-scheme-name">${s.full_name || s.name || s.id}</div>
+      <div class="chat-scheme-benefit">${s.benefit || ''}</div>
+      <div class="chat-scheme-match">${Math.round((s.confidence || 0.85) * 100)}% match</div>
+      ${applyBtn}
+    </div>`;
+  }).join('');
+}
+
+async function fetchSchemeLink(schemeId, btn) {
+  btn.disabled   = true;
+  btn.textContent = '⏳ Fetching…';
+  try {
+    const data = await (await fetch('/api/scheme/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scheme_id: schemeId, district: profile.district })
+    })).json();
+    if (data.portal_url) {
+      window.open(data.portal_url, '_blank');
+      btn.outerHTML = `<a class="ai-apply-btn" href="${data.portal_url}" target="_blank">🌐 Apply Now ↗</a>`;
+    }
+  } catch (e) {
+    btn.textContent = '📋 Apply Link';
+    btn.disabled    = false;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   CHAT
+───────────────────────────────────────────── */
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-window').classList.toggle('open', chatOpen);
+}
+
+function addChatMsg(text, type) {
+  const container = document.getElementById('chat-messages');
+  const div       = document.createElement('div');
+  div.className   = `msg ${type}`;
+  div.innerHTML   = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function addLoadingMsg() {
+  const container = document.getElementById('chat-messages');
+  const div       = document.createElement('div');
+  div.className   = 'msg bot';
+  div.innerHTML   = 'Thinking<span class="loading-dots"><span></span><span></span><span></span></span>';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function quickQuery(text) {
+  document.getElementById('chat-input').value = text;
+  if (!chatOpen) toggleChat();
+  sendMessage();
+}
+
+async function sendMessage() {
+  const inputEl = document.getElementById('chat-input');
+  const text    = inputEl.value.trim();
+  if (!text) return;
+  addChatMsg(text, 'user');
+  inputEl.value = '';
+  document.getElementById('send-btn').disabled = true;
+  const loadingDiv = addLoadingMsg();
+  profile = getProfileFromForm();
+  try {
+    const data = await (await fetch('/api/query/text', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, language: currentLanguage, profile })
+    })).json();
+    loadingDiv.remove();
+    handleQueryResponse(data);
+  } catch (e) {
+    loadingDiv.remove();
+    addChatMsg('⚠️ Could not connect to the AI agent. Make sure the Flask server is running.', 'error');
+  } finally {
+    document.getElementById('send-btn').disabled = false;
+  }
+}
+
+function handleQueryResponse(data) {
+  if (data.error) { addChatMsg(`⚠️ ${data.error}`, 'error'); return; }
+  const text      = data.text     || 'No response received.';
+  const schemes   = data.schemes  || [];
+  const appLinks  = data.app_links|| {};
+  currentAudioB64 = data.audio_b64 || null;
+  let html = `<div style="margin-bottom:${schemes.length ? '0.75rem' : '0'}">${text}</div>`;
+  if (schemes.length) html += renderChatSchemeCards(schemes, appLinks);
+  if (currentAudioB64) html += `<button class="play-audio-btn" onclick="playAudio(false)">🔊 Play Response</button>`;
+  addChatMsg(html, 'bot');
+  if (schemes.length) {
+    renderAISchemesPanel(schemes, appLinks);
+    document.getElementById('aiSchemesSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  if (currentAudioB64) setTimeout(() => playAudio(true), 300);
+  if (data.app_links) {
+    const fl = Object.values(data.app_links)[0];
+    if (fl && fl.csc_address) {
+      const dist = fl.csc_distance_km ? ` · ${fl.csc_distance_km} km` : '';
+      document.getElementById('mapCscInfo').textContent = `📍 Nearest CSC: ${fl.csc_address}${dist}`;
+    }
+  }
+}
+
+function playAudio(auto) {
+  if (!currentAudioB64) return;
+  try {
+    const bin = atob(currentAudioB64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    const url   = URL.createObjectURL(new Blob([arr], { type: 'audio/wav' }));
+    const audio = new Audio(url);
+    const badge = document.getElementById('speakingBadge');
+    badge.style.display = 'inline-flex';
+    audio.onended = () => { badge.style.display = 'none'; URL.revokeObjectURL(url); };
+    audio.onerror = () => { badge.style.display = 'none'; };
+    audio.play().catch(() => { badge.style.display = 'none'; });
+  } catch (e) { console.warn('Audio play error:', e); }
+}
+
+/* ─────────────────────────────────────────────
+   MIC / VOICE
+───────────────────────────────────────────── */
+async function toggleRecording() {
+  if (isRecording) { stopRecording(); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setMicStatus('⚠️ Mic requires HTTPS or localhost', 'error');
+    return;
+  }
+  try {
+    const stream   = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+    mediaRecorder  = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+    audioChunks    = [];
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop          = sendAudioQuery;
+    mediaRecorder.start(250);
+    isRecording = true;
+    document.getElementById('mic-btn').classList.add('recording');
+    document.getElementById('mic-btn').textContent = '⏹️';
+    setMicStatus('🔴 Recording… tap to stop', 'ok');
+  } catch (e) {
+    let msg = `⚠️ ${e.message}`;
+    if (e.name === 'NotAllowedError') msg = '⚠️ Mic permission denied';
+    if (e.name === 'NotFoundError')   msg = '⚠️ No microphone found';
+    setMicStatus(msg, 'error');
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && isRecording) {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    isRecording = false;
+    document.getElementById('mic-btn').classList.remove('recording');
+    document.getElementById('mic-btn').classList.add('processing');
+    document.getElementById('mic-btn').textContent = '⏳';
+    setMicStatus('Processing…', 'ok');
+  }
+}
+
+async function sendAudioQuery() {
+  const blob     = new Blob(audioChunks, { type: 'audio/webm' });
+  const formData = new FormData();
+  formData.append('audio',   blob,    'query.webm');
+  formData.append('language', currentLanguage);
+  formData.append('profile',  JSON.stringify(getProfileFromForm()));
+  if (!chatOpen) toggleChat();
+  const loadingDiv = addLoadingMsg();
+  document.getElementById('send-btn').disabled = true;
+  try {
+    const data = await (await fetch('/api/query/audio', { method: 'POST', body: formData })).json();
+    loadingDiv.remove();
+    if (data.transcription) {
+      addChatMsg(`🎤 "${data.transcription}"`, 'user');
+      setMicStatus(`✓ "${data.transcription.slice(0, 50)}"`, 'ok');
+    }
+    handleQueryResponse(data);
+  } catch (e) {
+    loadingDiv.remove();
+    addChatMsg('⚠️ Audio query failed. Please try text input.', 'error');
+    setMicStatus('⚠️ Audio query failed', 'error');
+  } finally {
+    document.getElementById('mic-btn').classList.remove('processing');
+    document.getElementById('mic-btn').textContent = '🎤';
+    document.getElementById('send-btn').disabled   = false;
+    setTimeout(() => setMicStatus('Tap mic to speak in your language', ''), 4000);
+  }
+}
+
+function setMicStatus(msg, type) {
+  const el      = document.getElementById('micStatusBar');
+  el.textContent = msg;
+  el.className   = `mic-status-bar${type ? ' ' + type : ''}`;
+}
+
+/* ─────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', async () => {
+  // Try loading saved profile from server
+  await loadProfile();
+
+  // Init map
+  initMap(profile.latitude, profile.longitude);
+
+  // If no saved coordinates, try geocoding
+  if (!profile.latitude || !profile.longitude) {
+    try {
+      const resp = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: `${profile.village}, ${profile.district}, ${profile.state}` })
+      });
+      if (resp.ok) {
+        const loc = await resp.json();
+        if (loc.latitude && loc.longitude) {
+          profile.latitude  = loc.latitude;
+          profile.longitude = loc.longitude;
+          initMap(loc.latitude, loc.longitude);
+          document.getElementById('mapDesc').textContent = `Showing: ${profile.village}, ${profile.district}`;
+        }
+      }
+    } catch (e) { /* no geocode — map stays at state level */ }
+  }
+
+  // Attach live listeners (only update card, NOT eligibility on each keystroke)
+  ['input-name','input-village','input-district','input-land','input-crop','input-income'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateProfile);
+  });
+  document.getElementById('input-category').addEventListener('change', updateProfile);
+  document.getElementById('input-state').addEventListener('change', () => {
+    updateMapFromForm();
+    updateProfile();
+  });
+
+  // Sync ID card with defaults (no eligibility shown yet)
+  updateProfile();
+});
+</script>
+</body>
+</html>

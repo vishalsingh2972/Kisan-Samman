@@ -1,0 +1,147 @@
+[
+  {
+    "id": "PM-KISAN-001",
+    "name": "PM-KISAN",
+    "full_name": "Pradhan Mantri Kisan Samman Nidhi",
+    "sponsor": "Central Government",
+    "description": "Income support of Rs 6000 per year to small and marginal farmers.",
+    "benefit": "Rs 6000/year in 3 instalments of Rs 2000 each",
+    "state": "ALL",
+    "crop_type": "ALL",
+    "caste_categories": [
+      "GEN",
+      "OBC",
+      "SC",
+      "ST"
+    ],
+    "max_land_hectares": 2.0,
+    "requires_bank_account": true,
+    "requires_aadhaar": true,
+    "keywords": "income support kisan samman nidhi farmer money",
+    "portal_url": "https://pmkisan.gov.in/"
+  },
+  {
+    "id": "MH-IRRIG-007",
+    "name": "Mukhyamantri Shetakari Yojana",
+    "full_name": "Maharashtra CM Drip Irrigation Subsidy",
+    "sponsor": "Maharashtra State Government",
+    "description": "Subsidy up to Rs 50000 for drip or sprinkler irrigation equipment.",
+    "benefit": "Up to Rs 50,000 on irrigation equipment",
+    "state": "Maharashtra",
+    "crop_type": "ALL",
+    "caste_categories": [
+      "GEN",
+      "OBC",
+      "SC",
+      "ST"
+    ],
+    "max_land_hectares": 5.0,
+    "requires_bank_account": true,
+    "requires_aadhaar": true,
+    "keywords": "drip irrigation sprinkler subsidy Maharashtra water",
+    "portal_url": "https://mahadbt.maharashtra.gov.in/"
+  },
+  {
+    "id": "PM-FASAL-002",
+    "name": "PM Fasal Bima Yojana",
+    "full_name": "Pradhan Mantri Fasal Bima Yojana",
+    "sponsor": "Central Government",
+    "description": "Crop insurance scheme covering natural calamity losses at subsidised premium.",
+    "benefit": "Insurance cover against crop loss from floods, drought, pests",
+    "state": "ALL",
+    "crop_type": "ALL",
+    "caste_categories": [
+      "GEN",
+      "OBC",
+      "SC",
+      "ST"
+    ],
+    "max_land_hectares": null,
+    "requires_bank_account": true,
+    "requires_aadhaar": false,
+    "keywords": "crop insurance fasal bima natural calamity flood drought",
+    "portal_url": "https://pmfby.gov.in/"
+  },
+  {
+    "id": "KCC-003",
+    "name": "Kisan Credit Card",
+    "full_name": "Kisan Credit Card Scheme",
+    "sponsor": "Central Government / NABARD",
+    "description": "Provides short-term credit to farmers for crop cultivation at subsidised interest.",
+    "benefit": "Credit up to Rs 3 lakh at 4% interest per annum",
+    "state": "ALL",
+    "crop_type": "ALL",
+    "caste_categories": [
+      "GEN",
+      "OBC",
+      "SC",
+      "ST"
+    ],
+    "max_land_hectares": null,
+    "requires_bank_account": true,
+    "requires_aadhaar": true,
+    "keywords": "credit loan kisan credit card interest subsidy",
+    "portal_url": "https://www.pmkisan.gov.in/kcc.aspx"
+  },
+  {
+    "id": "SOIL-HEALTH-004",
+    "name": "Soil Health Card",
+    "full_name": "Soil Health Card Scheme",
+    "sponsor": "Central Government",
+    "description": "Free soil testing and personalised nutrient recommendations for each farm plot.",
+    "benefit": "Free soil health card with fertiliser recommendations",
+    "state": "ALL",
+    "crop_type": "ALL",
+    "caste_categories": [
+      "GEN",
+      "OBC",
+      "SC",
+      "ST"
+    ],
+    "max_land_hectares": null,
+    "requires_bank_account": false,
+    "requires_aadhaar": true,
+    "keywords": "soil test health card fertiliser nutrient",
+    "portal_url": "https://soilhealth.dac.gov.in/"
+  },
+  {
+    "id": "PM-KUSUM-005",
+    "name": "PM-KUSUM",
+    "full_name": "Pradhan Mantri Kisan Urja Suraksha evam Utthan Mahabhiyan",
+    "sponsor": "Central Government",
+    "description": "Solar pump installation subsidy up to 60% for irrigation.",
+    "benefit": "60% subsidy on solar pump installation (up to 7.5 HP)",
+    "state": "ALL",
+    "crop_type": "ALL",
+    "caste_categories": [
+      "GEN",
+      "OBC",
+      "SC",
+      "ST"
+    ],
+    "max_land_hectares": null,
+    "requires_bank_account": true,
+    "requires_aadhaar": true,
+    "keywords": "solar pump energy kusum irrigation electricity",
+    "portal_url": "https://pmkusum.mnre.gov.in/"
+  },
+  {
+    "id": "MH-OBC-AGRI-008",
+    "name": "Dr Babasaheb Ambedkar Krishi Swavalamban Yojana",
+    "full_name": "Maharashtra OBC/SC Farmer Self-Reliance Scheme",
+    "sponsor": "Maharashtra State Government",
+    "description": "Financial assistance for SC/OBC farmers for wells, sprinklers, and farm tools.",
+    "benefit": "Up to Rs 2.5 lakh for well construction and irrigation tools",
+    "state": "Maharashtra",
+    "crop_type": "ALL",
+    "caste_categories": [
+      "OBC",
+      "SC"
+    ],
+    "max_land_hectares": 6.0,
+    "requires_bank_account": true,
+    "requires_aadhaar": true,
+    "keywords": "OBC SC Maharashtra well pump tool subsidy ambedkar",
+    "portal_url": "https://mahadbt.maharashtra.gov.in/"
+  }
+]

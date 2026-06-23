@@ -1,0 +1,17 @@
+{
+  "name": "Vishal Singh",
+  "state": "Maharashtra",
+  "district": "Nashik",
+  "village": "Yeola",
+  "land_hectares": 1.2,
+  "crop_type": "sugarcane",
+  "caste_category": "OBC",
+  "gender": "male",
+  "age": 42,
+  "bank_account": true,
+  "aadhaar_linked": true,
+  "kisan_credit_card": false,
+  "pm_kisan_registered": false,
+  "annual_income": 85000,
+  "language_code": "mr-IN"
+}
