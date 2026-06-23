@@ -1,1 +1,1 @@
-"""Kisan Seva — agent package"""
+"""Kisan Samman — agent package"""

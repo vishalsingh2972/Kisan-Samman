@@ -1,1 +1,1 @@
-"""Kisan Seva — voice package"""
+"""Kisan Samman — voice package"""

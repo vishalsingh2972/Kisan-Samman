@@ -20,7 +20,7 @@ logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
 )
-logger = logging.getLogger("kisan_seva.agent")
+logger = logging.getLogger("kisan_samman.agent")
 
 # ── Groq LLM via LangChain ────────────────────────────────────────────────────
 from langchain_groq import ChatGroq
@@ -29,7 +29,7 @@ from langchain.prompts import PromptTemplate
 from langchain.tools import Tool
 
 # ── Internal modules ──────────────────────────────────────────────────────────
-_agent_root = Path(__file__).resolve().parent.parent  # kisan-seva/ or kisan-seva/ui/
+_agent_root = Path(__file__).resolve().parent.parent  # kisan-samman/ or kisan-samman/ui/
 sys.path.insert(0, str(_agent_root))
 sys.path.insert(0, str(_agent_root.parent))  # one level higher in case of ui/ subfolder
 
@@ -113,7 +113,7 @@ TOOLS = [
 
 # ── ReAct prompt template ─────────────────────────────────────────────────────
 
-REACT_TEMPLATE = """You are Kisan Seva, an AI assistant helping Indian farmers find government schemes.
+REACT_TEMPLATE = """You are Kisan Samman, an AI assistant helping Indian farmers find government schemes.
 
 You have access to the following tools:
 

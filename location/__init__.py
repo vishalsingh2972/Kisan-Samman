@@ -1,1 +1,1 @@
-"""Kisan Seva — location package"""
+"""Kisan Samman — location package"""

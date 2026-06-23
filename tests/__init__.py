@@ -1,1 +1,1 @@
-"""Kisan Seva — tests package"""
+"""Kisan Samman — tests package"""

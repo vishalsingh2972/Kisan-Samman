@@ -1,1 +1,1 @@
-"""Kisan Seva — mcp package"""
+"""Kisan Samman — mcp package"""

@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 NOMINATIM_BASE = "https://nominatim.openstreetmap.org"
 OVERPASS_BASE  = "https://overpass-api.de/api/interpreter"
-USER_AGENT = os.getenv("NOMINATIM_USER_AGENT", "KisanSeva/1.0 (contact@kisanseva.in)")
+USER_AGENT = os.getenv("NOMINATIM_USER_AGENT", "KisanSamman/1.0 (contact@kisansamman.in)")
 _HEADERS = {"User-Agent": USER_AGENT, "Accept-Language": "en"}
 _last_nominatim_call: float = 0.0
 
@@ -80,8 +80,8 @@ def find_nearest_csc(lat: float, lng: float, district: str = "") -> dict:
     if not lat or not lng or (lat == 0.0 and lng == 0.0):
         return _stub_csc(district)
     template = """[out:json][timeout:15];(
-  node["amenity"="government"]["name"~"Common Service|CSC|Seva Kendra|Jan Seva",i](around:{r},{lat},{lon});
-  node["office"="government"]["name"~"Common Service|CSC|Seva Kendra",i](around:{r},{lat},{lon});
+  node["amenity"="government"]["name"~"Common Service|CSC|Samman Kendra|Jan Samman",i](around:{r},{lat},{lon});
+  node["office"="government"]["name"~"Common Service|CSC|Samman Kendra",i](around:{r},{lat},{lon});
 );out body;"""
     for radius in (5000, 15000, 30000):
         try:

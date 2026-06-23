@@ -1,5 +1,5 @@
 """
-app.py — Kisan Seva Flask web application.
+app.py — Kisan Samman Flask web application.
 Serves the UI and REST API endpoints for the React agent pipeline.
 
 Run:
@@ -20,13 +20,13 @@ logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
 )
-logger = logging.getLogger("kisan_seva.app")
+logger = logging.getLogger("kisan_samman.app")
 
 # Insert both this file's directory AND its parent so imports work whether
 # app.py lives at the project root OR inside a ui/ subfolder.
 _here = Path(__file__).resolve().parent
-sys.path.insert(0, str(_here))           # e.g. kisan-seva/ui/
-sys.path.insert(0, str(_here.parent))    # e.g. kisan-seva/  (where agent/ lives)
+sys.path.insert(0, str(_here))           # e.g. kisan-samman/ui/
+sys.path.insert(0, str(_here.parent))    # e.g. kisan-samman/  (where agent/ lives)
 
 # Also load .env from the project root (parent) if not found next to app.py
 _root_env = _here.parent / ".env"
@@ -49,8 +49,8 @@ _current_profile: FarmerProfile = sample_profile()
 
 @app.route("/")
 def index():
-    """Serve the main UI from static/kisan_seva.html"""
-    return send_from_directory(str(_here.parent / "static"), "kisan_seva.html")
+    """Serve the main UI from static/kisan_samman.html"""
+    return send_from_directory(str(_here.parent / "static"), "kisan_samman.html")
 
 
 # ── API Routes ────────────────────────────────────────────────────────────────
@@ -216,16 +216,16 @@ if __name__ == "__main__":
     debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
 
     # Sanity-check that the UI file exists before starting
-    ui_path = _here / "static" / "kisan_seva.html"
+    ui_path = _here / "static" / "kisan_samman.html"
     if not ui_path.exists():
         logger.warning(
             "UI file not found at %s — "
-            "place kisan_seva.html inside the static/ folder.", ui_path
+            "place kisan_samman.html inside the static/ folder.", ui_path
         )
     else:
         logger.info("UI file found: %s ✓", ui_path)
 
-    logger.info("Starting Kisan Seva on http://localhost:%d", port)
+    logger.info("Starting Kisan Samman on http://localhost:%d", port)
     logger.info(
         "MOCK_MCP=%s  MOCK_VOICE=%s",
         os.getenv("MOCK_MCP", "false"),

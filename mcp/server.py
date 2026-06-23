@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
-logger = logging.getLogger("kisan_seva.mcp_server")
+logger = logging.getLogger("kisan_samman.mcp_server")
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -33,7 +33,7 @@ PORT = int(os.getenv("MCP_SERVER_PORT", "8080"))
 
 
 if _MCP_LIB:
-    server = MCPServer(name="kisan-seva-mcp", version="1.0.0")
+    server = MCPServer(name="kisan-samman-mcp", version="1.0.0")
 
     @tool(server)
     def search_schemes_tool(query: str, state: str = "", crop_type: str = "") -> str:
@@ -54,7 +54,7 @@ if _MCP_LIB:
         return json.dumps(result, ensure_ascii=False)
 
     if __name__ == "__main__":
-        logger.info("Starting Kisan Seva MCP Server on %s:%s", HOST, PORT)
+        logger.info("Starting Kisan Samman MCP Server on %s:%s", HOST, PORT)
         server.run(host=HOST, port=PORT)
 else:
     # Fallback: minimal HTTP server for testing without mcp library
