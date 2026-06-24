@@ -98,13 +98,15 @@ By removing language, awareness, and accessibility barriers, Kisan Samman empowe
 
 ## 🚀 Future Improvements
 
-* Direct scheme application assistance
-* WhatsApp integration
-* Farmer profile memory
-* Document verification support
-* Regional scheme recommendations
-* Voice-based form filling
-* Any innovation that can help farmers access benefits faster and more easily
+* Direct scheme application assistance  
+* WhatsApp integration  
+* Farmer profile memory  
+* Voice-based farmer profile creation (collecting details through conversation)  
+* Camera-based document scanning for profile setup and verification  
+* Automated document attachment during onboarding  
+* Regional scheme recommendations  
+* Voice-based form filling  
+* Anything that makes Kisan Samman simpler, faster, and more accessible for farmers  
 
 ---
 
