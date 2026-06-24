@@ -2,6 +2,8 @@
 
 Kisan Samman is a multilingual AI-powered assistant that helps Indian farmers discover, understand, and apply for government welfare schemes in under 30 seconds.
 
+---
+
 ## 🚜 Problem
 
 The Indian government spends over **₹1.8 lakh crore annually** on farmer welfare programs, yet millions of eligible farmers miss out on benefits due to:
@@ -11,6 +13,8 @@ The Indian government spends over **₹1.8 lakh crore annually** on farmer welfa
 * Language barriers
 * Confusing eligibility criteria
 * Lack of application guidance
+
+---
 
 ## 💡 Solution
 
@@ -29,6 +33,8 @@ The AI agent will:
 * ✅ Explain benefits and application steps in the farmer's preferred language
 * ✅ Complete the entire guidance flow in under 30 seconds
 
+---
+
 ## ✨ Features
 
 * 🎙️ Voice-first interaction
@@ -39,13 +45,40 @@ The AI agent will:
 * 📍 Nearby CSC locator
 * 🔊 Voice responses in local languages
 
+---
+
+## 🎥 Demo Video
+
+See **Kisan Samman** in action and experience how farmers can discover government schemes through a simple voice conversation.
+
+👉 [**Watch the Demo**](https://x.com/SarvamAI/status/2069390998481031274?s=20)
+
+> From asking questions in local languages to receiving scheme recommendations, eligibility checks, and application guidance — all within seconds.
+
+---
+
 ## 🧠 Tech Stack
+
+### AI & Language Models
 
 * **LLMs:** Grok, Llama 3 70B
 * **Orchestration:** LangChain
-* **Speech AI:** Sarvam AI (ASR + TTS)
-* **Backend:** Flask, Python
-* **Maps:** Leaflet.js, OpenStreetMap
+
+### Speech AI
+
+* **ASR & TTS:** Sarvam AI
+
+### Backend
+
+* Flask
+* Python
+
+### Maps & Location Services
+
+* Leaflet.js
+* OpenStreetMap
+
+---
 
 ## 🎯 Vision
 
@@ -55,6 +88,8 @@ Our goal is simple:
 
 By removing language, awareness, and accessibility barriers, Kisan Samman empowers farmers to access the benefits they deserve.
 
+---
+
 ## 🚀 Future Improvements
 
 * Direct scheme application assistance
@@ -63,7 +98,27 @@ By removing language, awareness, and accessibility barriers, Kisan Samman empowe
 * Document verification support
 * Regional scheme recommendations
 * Voice-based form filling
+* Any anything that can help our farmers
+
+---
 
 ## 🤝 Contributing
 
 Contributions, feedback, and suggestions are welcome.
+
+If you'd like to contribute:
+
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+4. Share ideas and feedback through Issues
+
+Together, we can make welfare schemes accessible to every farmer in India.
+
+---
+
+## ❤️ Built For Farmers
+
+Kisan Samman is built with a farmer-first approach to bridge the gap between government welfare programs and the people who need them most.
+
+**One conversation. One farmer. One benefit at a time. 🌾**
